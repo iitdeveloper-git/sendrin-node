@@ -158,12 +158,14 @@ class OtpNamespace {
   constructor(private readonly client: Sendrin) {}
 
   send(input: SendOtpInput): Promise<SendOtpResponse> {
-    const body: SendOtpRequest = {
-      purpose: "login",
-      code_length: 6,
-      ttl_seconds: 600,
-      ...input,
-    };
+    // `code_length` and `ttl_seconds` carry server-side defaults (6, 600 at
+    // time of writing). Deliberately do NOT default them here: unless the
+    // caller explicitly passes one, omit it from the request body entirely
+    // so the server applies its own (possibly-changing) default, mirroring
+    // the Python SDK's behavior. The cast is needed because the generated
+    // `SendOtpRequest` type marks these fields as required even though the
+    // server treats them as optional (they carry an OpenAPI `default`).
+    const body = { purpose: "login", ...input } as SendOtpRequest;
     return this.client.request<SendOtpResponse>((http, signal) =>
       http.POST("/api/v1/otp/send", { body, signal })
     );

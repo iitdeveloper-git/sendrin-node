@@ -46,6 +46,62 @@ describe("Sendrin client", () => {
     expect(result.remaining_credits).toBe(42);
   });
 
+  it("omits code_length and ttl_seconds from the request body when not passed", async () => {
+    const requests: Request[] = [];
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const request = input instanceof Request ? input : new Request(input);
+      requests.push(request.clone());
+      return jsonResponse(200, {
+        otp_id: "otp_123",
+        status: "sent",
+        channel: "sms",
+        expires_at: "2026-09-19T12:00:00+00:00",
+        ttl_seconds: 600,
+        purpose: "login",
+        remaining_credits: 42,
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const client = new Sendrin("gns_live_sk_test");
+    await client.otp.send({ channel: "sms", recipient_phone: "+14155552671", purpose: "login" });
+
+    const body = await requests[0].json();
+    expect(body).not.toHaveProperty("code_length");
+    expect(body).not.toHaveProperty("ttl_seconds");
+  });
+
+  it("includes code_length and ttl_seconds in the request body when explicitly passed", async () => {
+    const requests: Request[] = [];
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const request = input instanceof Request ? input : new Request(input);
+      requests.push(request.clone());
+      return jsonResponse(200, {
+        otp_id: "otp_123",
+        status: "sent",
+        channel: "sms",
+        expires_at: "2026-09-19T12:00:00+00:00",
+        ttl_seconds: 120,
+        purpose: "login",
+        remaining_credits: 42,
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const client = new Sendrin("gns_live_sk_test");
+    await client.otp.send({
+      channel: "sms",
+      recipient_phone: "+14155552671",
+      purpose: "login",
+      code_length: 8,
+      ttl_seconds: 120,
+    });
+
+    const body = await requests[0].json();
+    expect(body.code_length).toBe(8);
+    expect(body.ttl_seconds).toBe(120);
+  });
+
   it("raises SendrinQuotaExceededError without retry on 429", async () => {
     const fetchMock = vi.fn(async () =>
       jsonResponse(429, { detail: { message: "Quota exceeded", code: "quota_exceeded" } })

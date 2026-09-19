@@ -2,6 +2,12 @@
   "name": "@sendrin/sdk",
   "version": "0.1.0",
   "description": "Official Node.js/TypeScript SDK for the Sendrin notification API",
+  "license": "MIT",
+  "author": "Sendrin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iitdeveloper-git/sendrin"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
