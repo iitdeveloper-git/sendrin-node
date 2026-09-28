@@ -6,7 +6,7 @@
   "author": "Sendrin",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iitdeveloper-git/sendrin"
+    "url": "https://github.com/iitdeveloper-git/sendrin-node.git"
   },
   "type": "module",
   "main": "./dist/index.js",
